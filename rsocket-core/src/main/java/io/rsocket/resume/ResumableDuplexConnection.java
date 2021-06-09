@@ -52,6 +52,7 @@ public class ResumableDuplexConnection extends Flux<ByteBuf>
   final UnboundedProcessor savableFramesSender;
   final Disposable framesSaverDisposable;
   final Sinks.Empty<Void> onClose;
+  final SocketAddress localAddress;
   final SocketAddress remoteAddress;
   final Sinks.Many<Integer> onConnectionClosedSink;
 
@@ -82,6 +83,7 @@ public class ResumableDuplexConnection extends Flux<ByteBuf>
     this.savableFramesSender = new UnboundedProcessor();
     this.framesSaverDisposable = resumableFramesStore.saveFrames(savableFramesSender).subscribe();
     this.onClose = Sinks.empty();
+    this.localAddress = initialConnection.localAddress();
     this.remoteAddress = initialConnection.remoteAddress();
 
     ACTIVE_CONNECTION.lazySet(this, initialConnection);
@@ -270,6 +272,11 @@ public class ResumableDuplexConnection extends Flux<ByteBuf>
   }
 
   @Override
+  public SocketAddress localAddress() {
+    return localAddress;
+  }
+
+  @Override
   public SocketAddress remoteAddress() {
     return remoteAddress;
   }
@@ -326,6 +333,11 @@ public class ResumableDuplexConnection extends Flux<ByteBuf>
     @Override
     public ByteBufAllocator alloc() {
       return ByteBufAllocator.DEFAULT;
+    }
+
+    @Override
+    public SocketAddress localAddress() {
+      return null;
     }
 
     @Override
